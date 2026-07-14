@@ -1,4 +1,4 @@
-# Python 리팩토링 계획
+# Python 리팩토링 계획 (완료)
 
 ## 배경 (Context)
 
@@ -16,18 +16,21 @@
 
 ```
 python/
-  models.py            # CarType, EngineType, BrakeType, SteeringType enum + CarSpec
-  rules.py              # CompatibilityRule, RULES, CompatibilityChecker
-  assemble.py           # Assemble 추상 클래스 (메뉴/스텝 진행 로직, I/O는 추상 메서드)
-  assemble_console.py   # AssembleConsole(Assemble) - 실제 콘솔 입출력
-  assemble_testable.py  # AssembleTestable(Assemble) - 입력 배열 주입, 출력 문자열 캡처 (테스트용)
-  main.py               # 진입점: AssembleConsole().run()
+  README.md             # 실행/테스트 방법 안내
+  REFACTORING.md         # 본 문서
+  requirements-dev.txt   # 테스트 실행용 개발 의존성 (pytest)
+  models.py              # CarType, EngineType, BrakeType, SteeringType enum + CarSpec
+  rules.py               # CompatibilityRule, RULES, CompatibilityChecker
+  assemble.py            # Assemble 추상 클래스 (메뉴/스텝 진행 로직, I/O는 추상 메서드)
+  assemble_console.py    # AssembleConsole(Assemble) - 실제 콘솔 입출력
+  assemble_testable.py   # AssembleTestable(Assemble) - 입력 배열 주입, 출력 문자열 캡처 (테스트용)
+  main.py                # 진입점: AssembleConsole().run()
   tests/
-    test_rules.py        # 호환성 규칙 단위테스트 (순수 로직)
-    test_assemble.py      # 전체 플로우 시나리오 테스트 (AssembleTestable 사용)
+    test_rules.py         # 호환성 규칙 단위테스트 (순수 로직)
+    test_assemble.py       # 전체 플로우 시나리오 테스트 (AssembleTestable 사용, 19개)
 ```
 
-기존 `python/assemble.py`(절차형 단일 파일)는 위 구조로 대체된다.
+기존 `python/assemble.py`(절차형 단일 파일)는 위 구조로 대체되었다.
 
 ## 핵심 설계
 
@@ -74,6 +77,19 @@ class CarType(Enum):
 
 상태(`step`, 각 스텝별 선택값)는 전역변수 대신 인스턴스 속성으로 보관하고, `bare except`는 `except ValueError`로 교체한다.
 
+### 진입점 (`main.py`)
+
+실제 실행 진입점은 `main.py` 하나뿐이다.
+
+```python
+from assemble_console import AssembleConsole
+
+if __name__ == "__main__":
+    AssembleConsole().run()
+```
+
+`AssembleConsole`은 `Assemble`을 상속해 실제 콘솔 I/O(표준입출력, `time.sleep`)를 구현한 클래스이고, `run()`은 내부적으로 `Assemble.execute()`(메뉴/스텝 진행 루프)를 호출한다. 테스트에서는 이 진입점을 거치지 않고 `AssembleTestable`을 직접 생성해 `run(inputs)`으로 시나리오를 주입한다 (자세한 사용법은 [`README.md`](README.md) 참고).
+
 ## 단계별 진행 (각 단계 = 커밋 1개)
 
 - [x] **0. 계획 문서 작성** (본 문서) — 실제 구현 전 계획을 먼저 문서화하고 커밋
@@ -81,6 +97,16 @@ class CarType(Enum):
 - [x] **2. Assemble 클래스 리팩토링** — `assemble.py`를 절차형 함수 → `Assemble` 추상 클래스로 재작성. 전역변수 제거, enum/규칙 계층 사용, bare except 제거. `assemble_console.py`, `assemble_testable.py` 분리 작성
 - [x] **3. 진입점 정리** — `main.py` 추가, 기존 `assemble.py`의 `main()` 진입 로직 제거. 수동으로 콘솔 실행해 기존과 동일한 UX인지 스모크 테스트
 - [x] **4. 유닛테스트 작성** — `tests/test_assemble.py`에 `AssembleTestable`로 전체 시나리오 테스트: 정상 조합 PASS, 5개 위반 규칙 각각 FAIL, 고장난 엔진 RUN 실패, 잘못된 입력 범위 에러, 뒤로가기(0) 동작
+- [x] **5. 리뷰 및 사용성 보완** — README/의존성 정리, 재검토 중 발견된 버그 수정 (아래 참고)
+
+**Stage 0~5 전부 완료.** 파이썬 리팩토링 작업은 마무리된 상태이며, 이후 변경은 이 문서와 커밋 히스토리에 계속 반영한다.
+
+## 리뷰 중 발견해 수정한 이슈
+
+1차 구현 완료 후 재검토하며 다음 문제를 발견해 수정했다 (각각 회귀 테스트 추가, 커밋 `18a5b9c`).
+
+- **범위 에러 메시지 조사 오류**: `_is_valid_range`가 모든 스텝에 "은"을 고정으로 붙여 "제동장치**은**", "조향장치**은**"처럼 문법이 틀린 메시지를 출력했다. 원본처럼 "제동장치**는**", "조향장치**는**"이 되도록 스텝별 전체 접두 문구(`STEP_ERROR_PREFIX`)를 사용하도록 수정.
+- **`exit` 판별 대소문자 처리**: 리팩토링 중 `buf.lower() == "exit"`로 바뀌어 있던 것을, 원본과 동일하게 대소문자를 구분하는 `buf == "exit"`로 원복.
 
 ## 검증 방법
 
