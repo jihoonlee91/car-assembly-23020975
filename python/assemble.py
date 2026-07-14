@@ -39,11 +39,11 @@ STEP_HEADER = {
     Step.STEERING: "어떤 조향장치를 선택할까요?",
 }
 
-STEP_ERROR_LABEL = {
-    Step.CAR_TYPE: "차량 타입",
-    Step.ENGINE: "엔진",
-    Step.BRAKE: "제동장치",
-    Step.STEERING: "조향장치",
+STEP_ERROR_PREFIX = {
+    Step.CAR_TYPE: "차량 타입은",
+    Step.ENGINE: "엔진은",
+    Step.BRAKE: "제동장치는",
+    Step.STEERING: "조향장치는",
 }
 
 STEP_MIN_ANSWER = {
@@ -83,7 +83,7 @@ class Assemble(ABC):
 
             buf = buf.strip()
 
-            if buf.lower() == "exit":
+            if buf == "exit":
                 self.println("바이바이")
                 break
 
@@ -145,7 +145,7 @@ class Assemble(ABC):
         if min_answer <= answer <= max_answer:
             return True
 
-        self.println(f"ERROR :: {STEP_ERROR_LABEL[self._step]}은 1 ~ {max_answer} 범위만 선택 가능")
+        self.println(f"ERROR :: {STEP_ERROR_PREFIX[self._step]} 1 ~ {max_answer} 범위만 선택 가능")
         return False
 
     def _handle_answer(self, answer):

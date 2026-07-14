@@ -153,6 +153,26 @@ def test_범위를_벗어난_입력이면_에러_메시지():
     assert "PASS" in output
 
 
+def test_각_스텝별_범위_에러_메시지_조사_정확성():
+    app = AssembleTestable()
+
+    inputs = [
+        "1",  # Sedan
+        "1",  # GM
+        "9",  # 잘못된 제동장치
+        "1",  # MANDO
+        "9",  # 잘못된 조향장치
+        "1",  # BOSCH
+        "2",  # Test
+    ]
+
+    output = app.run(inputs)
+
+    assert "ERROR :: 제동장치는 1 ~ 3 범위만 선택 가능" in output
+    assert "ERROR :: 조향장치는 1 ~ 2 범위만 선택 가능" in output
+    assert "PASS" in output
+
+
 def test_숫자가_아닌_입력이면_에러_메시지():
     app = AssembleTestable()
 
