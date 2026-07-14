@@ -80,7 +80,7 @@ class CarType(Enum):
 - [x] **1. 모델/규칙 계층 작성** — `models.py`, `rules.py` 추가. 아직 기존 `assemble.py`는 건드리지 않음. `tests/test_rules.py`로 5개 규칙 + PASS 케이스를 pytest로 검증 (순수 로직이라 UI 없이 먼저 테스트 가능)
 - [x] **2. Assemble 클래스 리팩토링** — `assemble.py`를 절차형 함수 → `Assemble` 추상 클래스로 재작성. 전역변수 제거, enum/규칙 계층 사용, bare except 제거. `assemble_console.py`, `assemble_testable.py` 분리 작성
 - [x] **3. 진입점 정리** — `main.py` 추가, 기존 `assemble.py`의 `main()` 진입 로직 제거. 수동으로 콘솔 실행해 기존과 동일한 UX인지 스모크 테스트
-- [ ] **4. 유닛테스트 작성** — `tests/test_assemble.py`에 `AssembleTestable`로 전체 시나리오 테스트: 정상 조합 PASS, 5개 위반 규칙 각각 FAIL, 고장난 엔진 RUN 실패, 잘못된 입력 범위 에러, 뒤로가기(0) 동작
+- [x] **4. 유닛테스트 작성** — `tests/test_assemble.py`에 `AssembleTestable`로 전체 시나리오 테스트: 정상 조합 PASS, 5개 위반 규칙 각각 FAIL, 고장난 엔진 RUN 실패, 잘못된 입력 범위 에러, 뒤로가기(0) 동작
 
 ## 검증 방법
 
