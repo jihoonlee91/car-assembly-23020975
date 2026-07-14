@@ -78,7 +78,7 @@ class CarType(Enum):
 
 - [x] **0. 계획 문서 작성** (본 문서) — 실제 구현 전 계획을 먼저 문서화하고 커밋
 - [x] **1. 모델/규칙 계층 작성** — `models.py`, `rules.py` 추가. 아직 기존 `assemble.py`는 건드리지 않음. `tests/test_rules.py`로 5개 규칙 + PASS 케이스를 pytest로 검증 (순수 로직이라 UI 없이 먼저 테스트 가능)
-- [ ] **2. Assemble 클래스 리팩토링** — `assemble.py`를 절차형 함수 → `Assemble` 추상 클래스로 재작성. 전역변수 제거, enum/규칙 계층 사용, bare except 제거. `assemble_console.py`, `assemble_testable.py` 분리 작성
+- [x] **2. Assemble 클래스 리팩토링** — `assemble.py`를 절차형 함수 → `Assemble` 추상 클래스로 재작성. 전역변수 제거, enum/규칙 계층 사용, bare except 제거. `assemble_console.py`, `assemble_testable.py` 분리 작성
 - [ ] **3. 진입점 정리** — `main.py` 추가, 기존 `assemble.py`의 `main()` 진입 로직 제거. 수동으로 콘솔 실행해 기존과 동일한 UX인지 스모크 테스트
 - [ ] **4. 유닛테스트 작성** — `tests/test_assemble.py`에 `AssembleTestable`로 전체 시나리오 테스트: 정상 조합 PASS, 5개 위반 규칙 각각 FAIL, 고장난 엔진 RUN 실패, 잘못된 입력 범위 에러, 뒤로가기(0) 동작
 
@@ -87,3 +87,8 @@ class CarType(Enum):
 - 각 단계마다 `pytest python/tests` 실행해 통과 확인
 - 단계 3 이후 `python python/main.py`로 직접 실행해 기존과 동일하게 동작하는지 수동 확인 (Sedan → GM → Mando → Bosch → RUN/Test 등 몇 가지 조합)
 - 최종적으로 기존 `assemble.py`의 모든 분기(5개 호환성 규칙 + 고장난 엔진)가 새 구조에서도 동일한 메시지로 재현되는지 확인
+
+## 원본 대비 알려진 차이 (기능에 영향 없음)
+
+- 제동장치/조향장치 **선택 확인** 메시지가 원본에서는 대문자(`MANDO`, `BOSCH` 등)였으나, RUN 결과 출력에 쓰이던 표기(`Mando`, `Bosch` 등)로 통일함. 원본 자체가 두 메시지 사이에 표기가 일관되지 않았던 부분을 정리한 것으로, 통과/실패 판정이나 로직에는 영향 없음.
+- Test 결과 메시지는 원본 `assemble.py`와 동일하게 `"PASS"` / `"FAIL\n<사유>"` 형식을 그대로 유지함 (Java `v2` 버전의 `"자동차 부품 조합 테스트 결과 : PASS/FAIL"` 형식과는 다름 — 파이썬 원본 문구를 기준으로 함).
